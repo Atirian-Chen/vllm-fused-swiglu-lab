@@ -1,0 +1,112 @@
+﻿[
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  1,
+        "intermediate":  8960,
+        "dtype":  "fp16",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.012288,
+        "fused_one_kernel_p50_ms":  0.006144,
+        "speedup_p50":  2.000000,
+        "max_abs_fused_vs_stock":  0.007812
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  4,
+        "intermediate":  8960,
+        "dtype":  "fp16",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.013216,
+        "fused_one_kernel_p50_ms":  0.006816,
+        "speedup_p50":  1.938967,
+        "max_abs_fused_vs_stock":  0.007812
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  16,
+        "intermediate":  8960,
+        "dtype":  "fp16",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.011264,
+        "fused_one_kernel_p50_ms":  0.008160,
+        "speedup_p50":  1.380392,
+        "max_abs_fused_vs_stock":  0.007812
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  128,
+        "intermediate":  8960,
+        "dtype":  "fp16",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.029696,
+        "fused_one_kernel_p50_ms":  0.019456,
+        "speedup_p50":  1.526316,
+        "max_abs_fused_vs_stock":  0.007812
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  512,
+        "intermediate":  8960,
+        "dtype":  "fp16",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.147584,
+        "fused_one_kernel_p50_ms":  0.059392,
+        "speedup_p50":  2.484914,
+        "max_abs_fused_vs_stock":  0.007812
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  1,
+        "intermediate":  8960,
+        "dtype":  "fp32",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.018432,
+        "fused_one_kernel_p50_ms":  0.007040,
+        "speedup_p50":  2.618182,
+        "max_abs_fused_vs_stock":  0.000000
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  4,
+        "intermediate":  8960,
+        "dtype":  "fp32",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.012448,
+        "fused_one_kernel_p50_ms":  0.006144,
+        "speedup_p50":  2.026042,
+        "max_abs_fused_vs_stock":  0.000000
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  16,
+        "intermediate":  8960,
+        "dtype":  "fp32",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.025632,
+        "fused_one_kernel_p50_ms":  0.007168,
+        "speedup_p50":  3.575893,
+        "max_abs_fused_vs_stock":  0.000000
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  128,
+        "intermediate":  8960,
+        "dtype":  "fp32",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.026624,
+        "fused_one_kernel_p50_ms":  0.018016,
+        "speedup_p50":  1.477798,
+        "max_abs_fused_vs_stock":  0.000000
+    },
+    {
+        "device":  "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "tokens":  512,
+        "intermediate":  8960,
+        "dtype":  "fp32",
+        "layout":  "packed_gate_up",
+        "stock_two_kernel_p50_ms":  0.370688,
+        "fused_one_kernel_p50_ms":  0.248832,
+        "speedup_p50":  1.489712,
+        "max_abs_fused_vs_stock":  0.000000
+    }
+]

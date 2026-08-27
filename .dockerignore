@@ -1,0 +1,7 @@
+.pytest_cache
+build
+results/*.json
+results/*.jsonl
+__pycache__
+.git
+.venv

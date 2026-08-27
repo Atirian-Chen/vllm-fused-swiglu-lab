@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel", "torch"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vllm-fused-swiglu-lab"
+version = "0.1.0"
+description = "A minimal vLLM + packed SwiGLU CUDA fusion experiment."
+readme = "README_CN.md"
+requires-python = ">=3.10"
+dependencies = ["httpx>=0.27,<1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

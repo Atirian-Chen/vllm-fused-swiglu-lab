@@ -1,0 +1,8 @@
+ARG VLLM_IMAGE=vllm/vllm-openai:v0.10.2
+FROM ${VLLM_IMAGE}
+WORKDIR /workspace/vllm-fused-swiglu-lab
+COPY . .
+ENV TORCH_CUDA_ARCH_LIST=8.9
+ENV PYTHONPATH=/usr/local/lib/python3.12/dist-packages
+RUN BUILD_FUSED_OP=1 pip install --no-build-isolation --no-cache-dir .
+ENV VLLM_USE_FUSED_SILU_MUL=1

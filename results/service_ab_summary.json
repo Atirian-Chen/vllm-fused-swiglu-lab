@@ -1,0 +1,25 @@
+{
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "requests": 24,
+  "concurrency": 4,
+  "output_tokens": 48,
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "stock": {
+    "ttft_p50_ms": 40.14741499997854,
+    "latency_p95_ms": 1233.0873410001004,
+    "output_tok_s": 185.07189410114185,
+    "success_rate": 1.0
+  },
+  "fused": {
+    "ttft_p50_ms": 43.19959300005394,
+    "latency_p95_ms": 1347.750638999969,
+    "output_tok_s": 173.4347161864974,
+    "success_rate": 1.0
+  },
+  "delta_fused_minus_stock": {
+    "ttft_p50_ms": 3.0521780000753995,
+    "latency_p95_ms": 114.66329799986855,
+    "output_tok_s": -11.63717700014445
+  },
+  "notes": "Sequential single-GPU A/B after one warm-up request per service; one short run, not a production claim."
+}
