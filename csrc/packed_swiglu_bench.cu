@@ -1,4 +1,5 @@
 #include <cuda_fp16.h>
+#include <cuda_bf16.h>
 #include <cuda_runtime.h>
 
 #include <algorithm>
@@ -60,6 +61,35 @@ __global__ void fused_fp16(const __half* x, __half* y, int64_t n, int64_t i) {
   }
 }
 
+__global__ void stock_silu_bf16(const __nv_bfloat16* x, __nv_bfloat16* tmp,
+                                int64_t n, int64_t i) {
+  int64_t idx = int64_t(blockIdx.x) * blockDim.x + threadIdx.x;
+  if (idx < n) {
+    tmp[idx] = __float2bfloat16_rn(
+        silu(__bfloat162float(x[(idx / i) * (2 * i) + (idx % i)])));
+  }
+}
+__global__ void stock_mul_bf16(const __nv_bfloat16* x,
+                               const __nv_bfloat16* tmp,
+                               __nv_bfloat16* y, int64_t n, int64_t i) {
+  int64_t idx = int64_t(blockIdx.x) * blockDim.x + threadIdx.x;
+  if (idx < n) {
+    y[idx] = __float2bfloat16_rn(
+        __bfloat162float(tmp[idx]) *
+        __bfloat162float(x[(idx / i) * (2 * i) + i + (idx % i)]));
+  }
+}
+__global__ void fused_bf16(const __nv_bfloat16* x, __nv_bfloat16* y,
+                           int64_t n, int64_t i) {
+  int64_t idx = int64_t(blockIdx.x) * blockDim.x + threadIdx.x;
+  if (idx < n) {
+    int64_t row = idx / i, col = idx % i;
+    y[idx] = __float2bfloat16_rn(
+        silu(__bfloat162float(x[row * (2 * i) + col])) *
+        __bfloat162float(x[row * (2 * i) + i + col]));
+  }
+}
+
 float percentile(std::vector<float> values, float p) {
   std::sort(values.begin(), values.end());
   return values[static_cast<size_t>(std::ceil(values.size() * p)) - 1];
@@ -96,7 +126,8 @@ Config parse(int argc, char** argv) {
     else throw std::invalid_argument("unknown argument " + key);
   }
   if (c.tokens <= 0 || c.intermediate <= 0 || c.iters <= 0 ||
-      (c.dtype != "fp16" && c.dtype != "fp32")) throw std::invalid_argument("invalid config");
+      (c.dtype != "fp16" && c.dtype != "bf16" && c.dtype != "fp32"))
+    throw std::invalid_argument("invalid config");
   return c;
 }
 
@@ -119,7 +150,7 @@ int main(int argc, char** argv) {
       stock_ms = bench(baseline,c.warmup,c.iters); fused_ms = bench(fused_launch,c.warmup,c.iters); baseline(); fused_launch(); CUDA_CHECK(cudaDeviceSynchronize());
       std::vector<float> a(n), b(n); CUDA_CHECK(cudaMemcpy(a.data(),stock,n*sizeof(float),cudaMemcpyDeviceToHost)); CUDA_CHECK(cudaMemcpy(b.data(),fused,n*sizeof(float),cudaMemcpyDeviceToHost));
       for (int64_t k=0;k<n;++k) max_abs=std::max(max_abs,std::abs(a[k]-b[k])); cudaFree(x); cudaFree(tmp); cudaFree(stock); cudaFree(fused);
-    } else {
+    } else if (c.dtype == "fp16") {
       std::vector<__half> host(2 * n); for (__half& v : host) v = __float2half_rn(dist(rng));
       __half *x, *tmp, *stock, *fused; CUDA_CHECK(cudaMalloc(&x, 2*n*sizeof(__half)));
       CUDA_CHECK(cudaMalloc(&tmp, n*sizeof(__half))); CUDA_CHECK(cudaMalloc(&stock, n*sizeof(__half))); CUDA_CHECK(cudaMalloc(&fused, n*sizeof(__half)));
@@ -129,6 +160,23 @@ int main(int argc, char** argv) {
       stock_ms = bench(baseline,c.warmup,c.iters); fused_ms = bench(fused_launch,c.warmup,c.iters); baseline(); fused_launch(); CUDA_CHECK(cudaDeviceSynchronize());
       std::vector<__half> a(n), b(n); CUDA_CHECK(cudaMemcpy(a.data(),stock,n*sizeof(__half),cudaMemcpyDeviceToHost)); CUDA_CHECK(cudaMemcpy(b.data(),fused,n*sizeof(__half),cudaMemcpyDeviceToHost));
       for (int64_t k=0;k<n;++k) max_abs=std::max(max_abs,std::abs(__half2float(a[k])-__half2float(b[k]))); cudaFree(x); cudaFree(tmp); cudaFree(stock); cudaFree(fused);
+    } else {
+      std::vector<__nv_bfloat16> host(2 * n);
+      for (__nv_bfloat16& v : host) v = __float2bfloat16_rn(dist(rng));
+      __nv_bfloat16 *x, *tmp, *stock, *fused;
+      CUDA_CHECK(cudaMalloc(&x, 2*n*sizeof(__nv_bfloat16)));
+      CUDA_CHECK(cudaMalloc(&tmp, n*sizeof(__nv_bfloat16)));
+      CUDA_CHECK(cudaMalloc(&stock, n*sizeof(__nv_bfloat16)));
+      CUDA_CHECK(cudaMalloc(&fused, n*sizeof(__nv_bfloat16)));
+      CUDA_CHECK(cudaMemcpy(x, host.data(), 2*n*sizeof(__nv_bfloat16), cudaMemcpyHostToDevice));
+      auto baseline = [&] { stock_silu_bf16<<<blocks,threads>>>(x,tmp,n,c.intermediate); stock_mul_bf16<<<blocks,threads>>>(x,tmp,stock,n,c.intermediate); };
+      auto fused_launch = [&] { fused_bf16<<<blocks,threads>>>(x,fused,n,c.intermediate); };
+      stock_ms = bench(baseline,c.warmup,c.iters); fused_ms = bench(fused_launch,c.warmup,c.iters); baseline(); fused_launch(); CUDA_CHECK(cudaDeviceSynchronize());
+      std::vector<__nv_bfloat16> a(n), b(n);
+      CUDA_CHECK(cudaMemcpy(a.data(),stock,n*sizeof(__nv_bfloat16),cudaMemcpyDeviceToHost));
+      CUDA_CHECK(cudaMemcpy(b.data(),fused,n*sizeof(__nv_bfloat16),cudaMemcpyDeviceToHost));
+      for (int64_t k=0;k<n;++k) max_abs=std::max(max_abs,std::abs(__bfloat162float(a[k])-__bfloat162float(b[k])));
+      cudaFree(x); cudaFree(tmp); cudaFree(stock); cudaFree(fused);
     }
     std::cout << std::fixed << std::setprecision(6)
               << "{\n  \"device\": \"" << prop.name << "\",\n  \"tokens\": " << c.tokens

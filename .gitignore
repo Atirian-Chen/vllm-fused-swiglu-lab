@@ -10,6 +10,7 @@ results/*.jsonl
 results/*.csv
 !results/kernel.json
 !results/kernel_matrix.json
+!results/kernel_matrix_v2.json
 !results/service_stock.json
 !results/service_fused.json
 !results/service_ab_summary.json

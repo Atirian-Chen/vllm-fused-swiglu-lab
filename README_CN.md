@@ -74,6 +74,14 @@ python -m vllm_fused_swiglu_lab.service_benchmark `
 
 对照结果至少记录：TTFT P50、延迟 P95、输出 token 数和成功率。该脚本只负责最小服务数据采集，不修改 scheduler、KV cache 或 attention backend。
 
+扩展服务负载矩阵使用：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_service_matrix.ps1 -Rounds 2
+```
+
+默认覆盖 `T≈1/4/8` 的 decode、64/256/768 token 的 prefill，以及一个混合负载；每个 case 交叉运行 stock/fused，并输出实际 prompt token、TTFT、P95 latency、TPOT 和吞吐。注意：服务层的 `T` 会随请求批次动态变化，不是一个可以固定填入的单一矩阵维度。
+
 ## 重要边界
 
 - 当前项目是新建的实验实现，不等同于已有 `kernel-benchmark-lab` 或 `vllm-serving-lab` 已完成端到端接入。
@@ -81,3 +89,4 @@ python -m vllm_fused_swiglu_lab.service_benchmark `
 - CUDA kernel 的局部 speedup 不能直接外推为服务 speedup。
 - 训练/反向路径未实现；训练模式应回退 stock。
 - vLLM Scheduler、Continuous Batching、Paged KV Cache 没有被修改。
+- 当前扩展 kernel sweep 结果见 `results/kernel_matrix_v2.json`；服务矩阵脚本在 Docker/WSL 后端可用后运行。
